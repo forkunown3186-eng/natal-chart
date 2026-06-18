@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AndroidManifest.xml
+  Place this at:  android/app/src/main/AndroidManifest.xml
+  (replaces the auto-generated Capacitor manifest)
+-->
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  package="com.natalchart.app">
+
+  <!-- ══════════════════════════════════════════════════════
+       PERMISSIONS
+       ══════════════════════════════════════════════════════ -->
+
+  <!-- Internet: required to load jsPDF CDN and Google Fonts -->
+  <uses-permission android:name="android.permission.INTERNET" />
+
+  <!-- Network state: lets app detect offline gracefully -->
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <!-- Location: for the "Auto-detect my location" button -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+  <!-- ── Storage: Android 9 and below ──────────────────────
+       WRITE_EXTERNAL_STORAGE lets the WebView's download
+       manager write to /sdcard/Download automatically.      -->
+  <uses-permission
+    android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="29" />
+  <uses-permission
+    android:name="android.permission.READ_EXTERNAL_STORAGE"
+    android:maxSdkVersion="32" />
+
+  <!-- ── Storage: Android 13+ (API 33) ────────────────────
+       Granular media permissions replace READ_EXTERNAL_STORAGE -->
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+  <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS" />
+
+  <!-- Vibration: optional, used by some Capacitor plugins -->
+  <uses-permission android:name="android.permission.VIBRATE" />
+
+  <!-- ══════════════════════════════════════════════════════
+       APPLICATION
+       ══════════════════════════════════════════════════════ -->
+  <application
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:label="@string/app_name"
+    android:supportsRtl="true"
+    android:theme="@style/AppTheme"
+
+    <!-- KEY: allow legacy external storage on Android 10 (API 29).
+         Without this, files go to app-private storage on API 29
+         and the user can't find them in the Files app.           -->
+    android:requestLegacyExternalStorage="true"
+
+    <!-- Required for WebView file downloads via DownloadManager -->
+    android:usesCleartextTraffic="false"
+
+    <!-- Hardware acceleration: essential for canvas rendering  -->
+    android:hardwareAccelerated="true"
+
+    tools:targetApi="33">
+
+    <!-- ── Main Activity ──────────────────────────────────── -->
+    <activity
+      android:name=".MainActivity"
+      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:windowSoftInputMode="adjustResize">
+
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+    </activity>
+
+    <!-- ── FileProvider: required for sharing files on Android 7+ -->
+    <provider
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="${applicationId}.fileprovider"
+      android:exported="false"
+      android:grantUriPermissions="true">
+      <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
+    </provider>
+
+  </application>
+
+</manifest>

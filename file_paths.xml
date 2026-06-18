@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  res/xml/file_paths.xml
+  Place at: android/app/src/main/res/xml/file_paths.xml
+
+  Defines which directories the FileProvider is allowed to share.
+  Required for:
+    - Sharing chart PNG via Android Share Sheet (navigator.share)
+    - Opening exported PDF from external file managers
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- App-private files (always accessible, no permission needed) -->
+  <files-path
+    name="app_files"
+    path="." />
+
+  <!-- External app-specific directory (Android 4.4+, no permission needed) -->
+  <external-files-path
+    name="external_files"
+    path="." />
+
+  <!-- Public Downloads folder (needs WRITE_EXTERNAL_STORAGE on API ≤29) -->
+  <external-path
+    name="public_downloads"
+    path="Download/" />
+
+  <!-- Public Pictures folder -->
+  <external-path
+    name="public_pictures"
+    path="Pictures/" />
+
+  <!-- Public Documents folder -->
+  <external-path
+    name="public_documents"
+    path="Documents/" />
+
+  <!-- Cache dir (used for temporary share files) -->
+  <cache-path
+    name="cache"
+    path="." />
+
+  <external-cache-path
+    name="external_cache"
+    path="." />
+
+</paths>
