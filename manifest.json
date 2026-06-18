@@ -8,7 +8,7 @@
   "short_name": "Astrava",
   "start_url": "/index.html",
   "theme_color": "#0d0d1a",
-  "lang": "en"
+  "lang": "en",
   "icons": [
     {
       "src": "/launchericon-144x144.png",
