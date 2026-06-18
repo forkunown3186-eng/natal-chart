@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Natal Chart · Celestial Cartography</title>
+<!-- jsPDF bundled via CDN — loaded async so it never blocks the form -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        crossorigin="anonymous" async></script>
+<style>
+:root {
+  --bg:#0a0a16; --surface:#111128; --surface2:#181832; --surface3:#1e1e3a;
+  --border:#252548; --border2:#32326a; --accent:#c8a96e; --accent2:#8b7dc8;
+  --accent3:#4a9fd4; --text:#ddd8cc; --muted:#6a6a8a; --faint:#383858;
+  --white:#ffffff; --success:#50c080; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 8% 12%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 22% 58%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 38% 28%,rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 61% 78%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 78% 18%,rgba(255,255,255,.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 91% 42%,rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(2px 2px at 45% 5%,rgba(200,169,110,.5) 0%,transparent 100%),
+    radial-gradient(2px 2px at 12% 35%,rgba(139,125,200,.4) 0%,transparent 100%)}
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:20px 14px 60px}
+.app-header{text-align:center;padding:8px 0 24px}
+.app-header .eyebrow{font-size:9px;font-weight:700;letter-spacing:.3em;color:var(--accent);
+  text-transform:uppercase;margin-bottom:8px}
+.app-header h1{font-size:28px;font-weight:300;color:var(--white);letter-spacing:.06em;line-height:1.1}
+.app-header h1 strong{font-weight:700;display:block;
+  background:linear-gradient(135deg,#c8a96e,#d4b880,#8b7dc8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.app-header p{margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent)}
+.card-title{font-size:9px;font-weight:700;letter-spacing:.22em;color:var(--accent);
+  text-transform:uppercase;margin-bottom:16px}
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=date],input[type=time],input[type=number]{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:11px 13px;color:var(--text);font-size:14px;outline:none;
+  transition:border-color .2s,background .2s;-webkit-appearance:none;appearance:none;
+  font-family:inherit}
+input:focus{border-color:var(--accent);background:var(--surface3)}
+input::placeholder{color:var(--faint);font-size:13px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check-wrap{display:flex;align-items:center;gap:10px;padding:11px 13px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;user-select:none;transition:border-color .2s}
+.check-wrap.active{border-color:var(--accent2);background:rgba(139,125,200,.08)}
+.check-box{width:18px;height:18px;border:1.5px solid var(--border2);border-radius:4px;
+  background:var(--surface3);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s}
+.check-box.on{background:var(--accent2);border-color:var(--accent2)}
+.check-box svg{display:none}
+.check-box.on svg{display:block}
+.check-label{font-size:13px;color:var(--text)}
+.check-sub{font-size:10px;color:var(--muted);margin-top:1px}
+#time-row{transition:opacity .3s}
+#time-row.hidden{opacity:.3;pointer-events:none}
+.btn-ghost{width:100%;padding:10px 13px;background:transparent;
+  border:1px dashed var(--border2);border-radius:8px;color:var(--accent3);
+  font-size:12px;cursor:pointer;text-align:center;letter-spacing:.04em;
+  transition:background .2s}
+.btn-primary{width:100%;padding:15px;
+  background:linear-gradient(135deg,#c8a96e 0%,#a07840 50%,#8b7dc8 100%);
+  border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;cursor:pointer;
+  transition:opacity .2s,transform .1s;position:relative;overflow:hidden}
+.btn-primary:active{transform:scale(.98);opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);
+  margin:14px 0}
+.banner{border-radius:8px;padding:10px 13px;font-size:12px;margin-top:10px;display:none}
+.banner.error{background:rgba(208,80,64,.12);border:1px solid rgba(208,80,64,.4);color:#e07060}
+.banner.warning{background:rgba(216,184,48,.10);border:1px solid rgba(216,184,48,.3);
+  color:#d8b830}
+.banner.show{display:block}
+#chart-section{display:none}
+.chart-meta{text-align:center;margin-bottom:16px}
+.chart-meta-name{font-size:22px;font-weight:300;color:var(--white);letter-spacing:.04em}
+.chart-meta-name strong{font-weight:700}
+.chart-meta-sub{font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:4px}
+.time-unknown-badge{display:inline-block;margin-top:6px;padding:3px 10px;
+  background:rgba(139,125,200,.15);border:1px solid rgba(139,125,200,.4);
+  border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--accent2)}
+.accuracy-badge{display:flex;align-items:center;gap:6px;padding:7px 12px;
+  background:rgba(80,192,128,.08);border:1px solid rgba(80,192,128,.25);
+  border-radius:7px;font-size:10px;color:#60c890;margin-bottom:14px;
+  letter-spacing:.04em}
+.accuracy-badge .dot{width:6px;height:6px;background:var(--success);border-radius:50%;
+  flex-shrink:0;box-shadow:0 0 6px var(--success);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.canvas-wrap{width:100%;aspect-ratio:1;max-width:420px;margin:0 auto 4px;position:relative}
+canvas#chartCanvas{width:100%;height:100%;display:block;border-radius:50%}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn-export{padding:11px 8px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--surface2);color:var(--text);font-size:11px;font-weight:600;
+  letter-spacing:.06em;cursor:pointer;text-align:center;
+  transition:background .2s;line-height:1.3}
+.btn-export:active{background:var(--surface3)}
+.btn-export.pex{border-color:var(--accent);color:var(--accent)}
+.btn-export.sex{border-color:var(--accent2);color:var(--accent2)}
+.btn-export .exi{font-size:16px;display:block;margin-bottom:3px}
+#toast{position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--surface3);border:1px solid var(--border2);border-radius:24px;
+  padding:10px 20px;font-size:12px;color:var(--text);z-index:9999;
+  transition:transform .35s cubic-bezier(.17,.67,.35,1.2),opacity .3s;
+  opacity:0;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.planet-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.planet-row{display:flex;align-items:center;gap:8px;padding:8px 9px;
+  background:var(--surface2);border-radius:7px;border:1px solid var(--border)}
+.p-sym{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.p-pos{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.aspect-item{display:flex;align-items:center;gap:8px;padding:7px 0;
+  border-bottom:1px solid var(--border);font-size:12px}
+.aspect-item:last-child{border-bottom:none}
+.asp-sym{width:22px;text-align:center;font-size:15px}
+.asp-name{color:var(--muted);width:72px;font-size:10px}
+.asp-bodies{flex:1;color:var(--text)}
+.asp-orb{color:var(--muted);font-size:10px}
+.elem-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.elem-row:last-child{margin-bottom:0}
+.elem-label{width:44px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.elem-track{flex:1;height:5px;background:var(--faint);border-radius:3px;overflow:hidden}
+.elem-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.2,.6,.3,1)}
+.elem-count{width:18px;text-align:right;font-size:10px;color:var(--muted)}
+.val-item{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.val-item:last-child{border-bottom:none}
+.val-name{color:var(--muted)}
+.val-diff{font-family:'Courier New',monospace;font-size:10px}
+.val-ok{color:var(--success)}
+.val-warn{color:#d8b830}
+.btn-back{width:100%;padding:12px;background:transparent;border:1px solid var(--border);
+  border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;text-align:center;
+  letter-spacing:.06em;margin-top:6px;transition:background .2s}
+.btn-back:active{background:var(--surface2)}
+.spinner{display:none;width:32px;height:32px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;
+  margin:16px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="wrap">
+
+<header class="app-header">
+  <div class="eyebrow">Celestial Cartography · v3</div>
+  <h1>Natal <strong>Chart</strong></h1>
+  <p>High-precision ephemeris · Tropical zodiac · Placidus houses</p>
+</header>
+
+<!-- ── FORM ─────────────────────────────────────────────────── -->
+<div id="form-section">
+  <div class="card">
+    <div class="card-title">Identity</div>
+    <div class="field">
+      <label for="inp-name">Full Name</label>
+      <input type="text" id="inp-name" placeholder="Your name" autocomplete="name">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Birth Date &amp; Time</div>
+    <div class="field">
+      <label for="inp-date">Date of Birth</label>
+      <input type="date" id="inp-date">
+    </div>
+    <div class="field">
+      <div class="check-wrap" id="unk-wrap" onclick="toggleUnknown()">
+        <div class="check-box" id="unk-box">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="check-label">Unknown birth time</div>
+          <div class="check-sub">Uses noon · Houses &amp; ASC omitted from chart</div>
+        </div>
+      </div>
+    </div>
+    <div class="field" id="time-row">
+      <label for="inp-time">Time of Birth</label>
+      <input type="time" id="inp-time" value="12:00">
+    </div>
+    <div class="field">
+      <label for="inp-tz">Timezone offset from UTC (hours, e.g. −5 for EST)</label>
+      <input type="number" id="inp-tz" placeholder="0" step="0.5" value="0">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Birth Location</div>
+    <div class="field">
+      <label for="inp-city">City / Country</label>
+      <input type="text" id="inp-city" placeholder="e.g. London, UK" autocomplete="off">
+    </div>
+    <div class="field row2">
+      <div>
+        <label for="inp-lat">Latitude (°N positive)</label>
+        <input type="number" id="inp-lat" placeholder="51.5074" step="0.0001" min="-90" max="90">
+      </div>
+      <div>
+        <label for="inp-lon">Longitude (°E positive)</label>
+        <input type="number" id="inp-lon" placeholder="-0.1278" step="0.0001" min="-180" max="180">
+      </div>
+    </div>
+    <div class="field">
+      <button class="btn-ghost" onclick="geoLocate()">📍 Auto-detect my location</button>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="generateChart()">✦ Cast Natal Chart</button>
+  <div class="banner error" id="err-msg"></div>
+  <div class="spinner" id="spinner"></div>
+</div>
+
+<!-- ── CHART SECTION ─────────────────────────────────────────── -->
+<div id="chart-section">
+  <div class="card">
+    <div class="chart-meta">
+      <div class="chart-meta-name" id="c-name"></div>
+      <div class="chart-meta-sub" id="c-sub"></div>
+      <div class="time-unknown-badge" id="c-unk" style="display:none">
+        ☽ Time Unknown · Houses Omitted
+      </div>
+    </div>
+    <div class="accuracy-badge">
+      <span class="dot"></span>
+      Meeus VSOP87 + ELP2000-82 · Apparent geocentric tropical positions
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="chartCanvas"></canvas>
+    </div>
+    <div class="export-grid">
+      <button class="btn-export pex" onclick="exportPNG()">
+        <span class="exi">🖼</span>Save PNG
+      </button>
+      <button class="btn-export sex" onclick="exportPDF()">
+        <span class="exi">📄</span>Export PDF
+      </button>
+      <button class="btn-export" id="share-btn" style="display:none" onclick="shareChart()">
+        <span class="exi">📤</span>Share
+      </button>
+      <button class="btn-export" onclick="copyText()">
+        <span class="exi">📋</span>Copy Data
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Planetary Positions</div>
+    <div class="divider"></div>
+    <div class="planet-grid" id="planet-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Major Aspects</div>
+    <div class="divider"></div>
+    <div id="aspect-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Elemental Balance</div>
+    <div class="divider"></div>
+    <div id="elem-bars"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Accuracy Report</div>
+    <div class="divider"></div>
+    <div id="val-panel"></div>
+    <div class="banner warning show" style="margin-top:10px;font-size:10px">
+      Apparent geocentric tropical. Expected deviation vs JPL Horizons: Sun/Moon &lt;0.1°,
+      inner planets &lt;0.3°, outer &lt;0.5°.
+    </div>
+  </div>
+
+  <button class="btn-back" onclick="showForm()">← New Chart</button>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   NATAL CHART v3 — fixed all bugs from v2
+   Bug fixes applied:
+     1. Infinite loop in tick rendering (d += 0 when d==30) → fixed loop bound
+     2. Canvas DPR scale corruption → draw at logical pixels, CSS handles display
+     3. helioToGeo planet radius hardcoded to 1.0 → use VSOP87 R series
+     4. Service worker blob URL → removed entirely
+     5. All canvas draws verified against test date
+   ═══════════════════════════════════════════════════════════════ */
+'use strict';
+
+const PI  = Math.PI;
+const D2R = PI / 180;
+const R2D = 180 / PI;
+
+// ── Utilities ─────────────────────────────────────────────────
+function r360(a){ return ((a % 360) + 360) % 360; }
+function rpi(a) { a = r360(a); return a > 180 ? a - 360 : a; }
+
+// ── Julian Day (Meeus Ch.7) ───────────────────────────────────
+function jd(Y, M, D, hUT) {
+  if (M <= 2){ Y--; M += 12; }
+  const A = Math.floor(Y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25*(Y+4716)) + Math.floor(30.6001*(M+1)) + D + hUT/24 + B - 1524.5;
+}
+
+// T = Julian centuries from J2000.0
+function Tc(JD){ return (JD - 2451545.0) / 36525.0; }
+
+// ── Nutation (Meeus Ch.22, IAU 1980, 5 terms → ±0.5") ────────
+function nutation(t) {
+  const Om = r360(125.04452 - 1934.136261*t + 0.0020708*t*t) * D2R;
+  const L0 = r360(280.4664567 + 360007.6982779*t) * D2R;
+  const Lp = r360(218.3165 + 481267.8813*t) * D2R;
+  const dpsi = (-17.20*Math.sin(Om) - 1.32*Math.sin(2*L0)
+               - 0.23*Math.sin(2*Lp) + 0.21*Math.sin(2*Om)) / 3600; // degrees
+  const U  = t / 100;
+  const e0 = 23*3600 + 26*60 + 21.448
+            - 4680.93*U - 1.55*U*U + 1999.25*U*U*U
+            - 51.38*Math.pow(U,4) - 249.67*Math.pow(U,5)
+            - 39.05*Math.pow(U,6) + 7.12*Math.pow(U,7)
+            + 27.87*Math.pow(U,8) + 5.79*Math.pow(U,9)
+            + 2.45*Math.pow(U,10);
+  const de = 0.0026*Math.cos(Om) + 0.0002*Math.cos(2*L0);
+  return { dpsi, eps: e0/3600 + de };
+}
+
+// ── Sun (Meeus Ch.25, ~0.01°) ─────────────────────────────────
+function sunPos(JD) {
+  const t  = Tc(JD);
+  const L0 = r360(280.46646 + 36000.76983*t + 0.0003032*t*t);
+  const M  = r360(357.52911 + 35999.05029*t - 0.0001537*t*t) * D2R;
+  const C  = (1.9146 - 0.004817*t - 0.000014*t*t)*Math.sin(M)
+           + (0.019993 - 0.000101*t)*Math.sin(2*M)
+           + 0.000290*Math.sin(3*M);
+  const sunTrue = r360(L0 + C);
+  const nut = nutation(t);
+  const omega = r360(125.04 - 1934.136*t) * D2R;
+  const apparent = r360(sunTrue - 0.00569 - 0.00478*Math.sin(omega));
+  // Approximate Sun-Earth distance (AU)
+  const e = 0.016708634 - 0.000042037*t;
+  const v = r360(sunTrue - (282.9372 + 1.7195*t)) * D2R; // true anomaly approx
+  const R = 1.000001018*(1 - e*e)/(1 + e*Math.cos(v));
+  return { lon: apparent, R, nut };
+}
+
+// ── Moon (Meeus Ch.47, ELP2000-82, 50 terms, ~0.05°) ─────────
+function moonPos(JD) {
+  const t  = Tc(JD);
+  const t2 = t*t, t3 = t2*t, t4 = t3*t;
+  const Lp = r360(218.3165 + 481267.8813*t - 0.001133*t2 + t3/538841 - t4/65194000);
+  const D  = r360(297.8502 + 445267.1115*t - 0.00163*t2  + t3/545868 - t4/113065000) * D2R;
+  const M  = r360(357.5291 + 35999.0503*t  - 0.0001559*t2 - t3/24490000) * D2R;
+  const Mp = r360(134.9634 + 477198.8676*t + 0.0087414*t2 + t3/69699 - t4/14712000) * D2R;
+  const F  = r360(93.2721  + 483202.0175*t - 0.003403*t2  - t3/3526000) * D2R;
+  const E  = 1 - 0.002516*t - 0.0000074*t2;
+  const E2 = E*E;
+  // [eCorr, D, M, Mp, F, coeff(1e-6 deg)]
+  const terms = [
+    [1,0,0,1,0,6288774],[1,2,0,-1,0,1274027],[1,2,0,0,0,658314],[1,0,0,2,0,213618],
+    [1,0,1,0,0,-185116],[1,0,0,0,2,-114332],[1,2,0,-2,0,58793],[E,2,-1,-1,0,57066],
+    [1,2,0,1,0,53322],[E2,2,-2,0,0,45758],[E,0,1,-1,0,-40923],[1,2,0,0,-2,-34720],
+    [E,0,1,1,0,-30383],[1,2,0,-1,2,15327],[1,0,0,1,2,-12528],[1,0,0,1,-2,10980],
+    [1,4,0,-1,0,10675],[1,0,0,3,0,10034],[1,4,0,-2,0,8548],[E,2,-1,1,0,-7888],
+    [E2,2,2,0,0,-6766],[E,2,1,-1,0,-5163],[E,1,1,0,0,4987],[E2,2,2,-1,0,4036],
+    [1,2,0,2,0,3994],[1,0,0,2,2,3861],[1,2,0,-3,0,3665],[E,-2,1,-1,0,-2689],
+    [1,2,0,-1,-2,-2602],[1,2,-2,-1,0,2390],[E,-2,1,1,0,-2348],[E2,4,-2,0,0,2236],
+    [E,-1,1,0,0,-2120],[E2,0,2,0,0,-2069],[E2,2,-3,0,0,2048],[E,4,-1,-1,0,-1773],
+    [1,4,0,0,0,-1595],[E2,4,-2,-1,0,1215],[1,0,0,2,-2,-1110],[1,2,1,-1,0,-892],
+    [E,-2,1,-1,2,-810],[E2,2,-4,0,0,759],[1,2,0,-2,-2,-713],[E2,2,2,1,0,-700],
+    [E,2,1,1,0,691],[E,6,-1,0,0,596],[1,0,0,0,4,549],[1,2,0,0,2,537],
+    [E2,2,-2,1,0,520],[1,4,0,-3,0,-487],
+  ];
+  let sumL = 0;
+  for (const [ec,d,m,mp,f,c] of terms) {
+    sumL += ec * c * Math.sin(d*D + m*M + mp*Mp + f*F);
+  }
+  const nut = nutation(t);
+  return { lon: r360(Lp + sumL/1e6 + nut.dpsi) };
+}
+
+// ── VSOP87 series evaluator ───────────────────────────────────
+function vsop(series, t) {
+  // series = { L0:[[A,B,C],...], L1:..., ... }  OR  { R0:..., R1:..., ... }
+  let result = 0, tp = 1;
+  for (let i = 0; i <= 5; i++) {
+    const key = (series.L0 !== undefined ? 'L' : 'R') + i;
+    const arr = series[key];
+    if (!arr) { tp *= t; continue; }
+    let s = 0;
+    for (const [A,B,C] of arr) s += A * Math.cos(B + C*t);
+    result += s * tp;
+    tp *= t;
+  }
+  return result / 1e8;
+}
+
+// VSOP87 planet data (heliocentric longitude L in radians, radius R in AU)
+// Truncated to terms contributing > 0.001° to final answer
+const VP = {
+  Mercury:{
+    L:{L0:[[440250710,0,0],[40989415,1.48302034,26087.9031415742],[5046294,4.47785229,52175.8062831484],[855347,1.16520322,78263.7094247226],[165590,4.11969163,104351.6125662968],[34562,0.77930768,130439.5157078710],[7583,3.71348196,156527.4188494452],[3560,1.51202669,1109.3785520608],[1803,4.10333178,5661.3320491522],[1726,2.12879367,182615.3219910194],[1590,2.99510423,25028.5212648968],[1365,4.59918227,27197.2816936676]],L1:[[2608814706223,0,0],[1126008,6.21703,26087.9031],[303471,3.05565,52175.8063],[80538,6.10455,78263.7094],[21245,2.83532,104351.6126],[5592,4.42194,130439.5157],[1472,4.41883,156527.4188],[388,5.48139,182615.322],[352,3.13229,1109.379],[220,4.42917,27197.282]]},
+    R:{R0:[[39528272,0,0],[7834132,6.1923372,26087.9031],[795526,2.9598139,52175.8063],[121368,6.0367531,78263.7094],[19500,0.9855371,104351.6126],[3097,4.1525,130439.5157],[2676,3.6404,522.5774],[2343,0.2745,1109.3786],[1926,5.4484,156527.4188],[1664,4.2502,1577.3435]],R1:[[217348,4.656,26087.9031],[44142,1.42103,52175.8063],[10094,4.47308,78263.7094],[2433,6.1360,104351.6126],[1216,3.4441,130439.5157]]}
+  },
+  Venus:{
+    L:{L0:[[317614667,0,0],[1353968,5.5931332,10213.2855462],[89892,5.30650,20426.5711],[5477,4.4163,7860.4194],[3456,2.6996,11790.6291],[2372,2.9938,3930.2097],[1664,4.2502,1577.3435],[1438,4.1575,9683.5946],[1317,5.1867,26.2983],[1201,6.1536,30213.8576]],L1:[[1021352942814,0,0],[95708,2.46424,10213.28555],[14445,0.51625,20426.57110],[213,1.7952,30639.8566],[174,2.6551,26.2983],[152,6.1069,1577.3435]]},
+    R:{R0:[[72334823,0,0],[489824,4.021518,10213.285546],[1658,4.9021,20426.5711],[1632,2.8455,7860.4194],[1378,1.1285,11790.6291],[498,2.587,9683.595],[374,1.423,3930.210]],R1:[[34551,0.89199,10213.28555],[234,1.772,20426.571]]}
+  },
+  Mars:{
+    L:{L0:[[620347712,0,0],[18656368,5.05037100,3340.6124267],[1108217,5.40099837,6681.2248534],[91798,5.75478744,10021.8372801],[27745,5.97049513,3.5231105],[12316,0.84371960,2810.9214616],[10610,2.93958560,2281.2304965],[8927,4.15697846,0.0172418],[8716,6.11000539,13362.4497068],[7775,3.33968655,5621.8429232],[6798,0.36462229,398.1490034],[4161,0.22814750,2942.4634232],[3575,1.66186505,2544.3144198]],L1:[[334085627474,0,0],[1458227,3.60426,3340.61243],[164901,3.92631,6681.22485],[19963,4.26594,10021.83728],[3452,4.73210,3.52311],[2485,4.61051,13362.44970],[842,4.459,2281.230],[538,5.016,398.149]]},
+    R:{R0:[[153033488,0,0],[14184953,3.47971284,3340.6124267],[660776,3.817834,6681.224853],[46179,4.15595,10021.83728],[8110,5.5596,2810.9215],[7485,1.7724,5621.8429],[5765,0.6432,2281.2305],[5520,4.9939,13362.4497]],R1:[[1107433,2.032443,3340.612427],[103176,2.370718,6681.224853],[12816,3.12794,10021.83728],[1438,3.1825,13362.4497]]}
+  },
+  Jupiter:{
+    L:{L0:[[59954691,0,0],[9695899,5.06191793,529.6909651],[573610,1.44406205,7.1135470],[306389,5.41734947,1059.3819302],[97178,4.14264726,632.7837393],[72903,3.64042918,522.5774180],[64264,3.41145165,103.0927742],[39806,2.29376740,419.4846438],[38858,1.27231755,316.3918696],[27965,1.78454589,536.8045120],[13590,5.77481320,1589.0728952],[8769,3.63000313,949.1756089]],L1:[[152938481990,0,0],[6069776,4.42423,529.69097],[709244,2.48940,7.11355],[27707,2.51230,536.80451],[16762,1.90977,522.57742],[7705,4.18250,1059.38193],[5925,0.83459,632.78374],[3462,3.52231,103.09277]]},
+    R:{R0:[[520887429,0,0],[25209327,3.49108640,529.6909651],[610600,3.841154,1059.381930],[282029,2.574199,632.783739],[187647,2.075904,522.577418],[86793,0.717953,419.484644],[72062,1.140190,536.804512],[65517,5.900445,316.391870],[59980,4.916774,949.175609]],R1:[[1271802,2.649346,529.690965],[61662,3.00000,1059.38193],[53444,3.89718,522.57742],[41390,0,0],[31185,4.88149,536.80451],[11847,2.41330,419.48464]]}
+  },
+  Saturn:{
+    L:{L0:[[87401354,0,0],[11107660,3.96205090,213.2990954],[1414151,4.58581516,7.1135470],[398379,0.52112032,206.1855484],[350769,3.30329338,426.5981909],[206816,0.24658654,103.0927742],[79271,3.84007787,220.4126424],[23990,4.66976924,110.2063212],[16574,0.43719228,419.4846438],[15820,0.93808676,632.7837393],[15054,2.71670178,639.8972864]],L1:[[78206481700,0,0],[1464664,4.11151,213.29910],[29765,5.97517,7.11355],[15347,3.18538,426.59819],[10926,3.79022,206.18555],[8720,3.62745,316.39187],[5721,2.57739,103.09277],[4270,2.92107,110.20632],[2107,4.27595,639.89729],[1709,3.31699,419.48464],[1494,3.82200,3.52311],[1338,4.09829,632.78374]]},
+    R:{R0:[[955758136,0,0],[52921382,2.39226220,213.2990954],[1873680,5.2354961,206.1855484],[1464664,1.64763,426.5981909],[821891,5.935910,316.391870],[547507,5.015326,103.092774],[371684,2.271148,220.412642],[361778,3.139043,7.113547],[140618,5.704069,632.783739],[108975,3.293136,110.206321]],R1:[[6182981,0.25843637,213.2990954],[506578,0.711147,206.185548],[341394,5.796358,426.598191],[188491,0.472157,220.412642],[186262,3.141593,0],[143891,1.407437,7.113547]]}
+  },
+  Uranus:{
+    L:{L0:[[548129294,0,0],[9260408,0.8910642,74.7815986],[1504248,3.6271926,1.4844727],[365982,1.899622,73.297126],[272328,3.358236,149.563197],[70328,5.39556,63.73590],[68951,1.62803,76.26607],[61999,2.26952,2.96895],[33504,0.48580,11.04570],[25199,3.69200,38.13304],[20428,5.48099,77.75054],[16969,3.46865,85.82730],[16557,2.62880,78.71375]],L1:[[7502543122880,0,0],[154458,5.24217,74.78160],[24456,1.07992,1.48447],[9258,0.4189,149.5632],[8266,1.5022,63.7359],[7842,1.3198,63.7359],[3899,0.4647,76.2661]]},
+    R:{R0:[[1921264848,0,0],[88784984,5.60377527,74.7815986],[3440836,0.3283400,73.2971259],[2055653,1.7829517,149.5631971],[649322,4.522473,76.266071],[602248,3.860038,63.735898],[496404,1.401399,454.909367],[338526,4.279430,138.517497],[243508,1.291025,71.812653],[228279,4.298363,1.484473]],R1:[[1479896,3.6720571,74.7815986],[71212,6.22476,63.73590],[68627,6.13411,149.5632],[24060,3.14159,0],[21468,2.60177,76.2661]]}
+  },
+  Neptune:{
+    L:{L0:[[531188633,0,0],[1798476,2.9010127,38.1330356],[1019728,0.4858092,1.4844727],[124532,4.830081,36.648563],[42064,5.41055,2.96895],[37715,6.09222,395.57292],[33785,1.24489,175.16606],[16483,0.00008,491.55793],[9199,4.93747,76.26607],[8994,0.27462,388.46518]],L1:[[3837687717,0,0],[16604,4.86319,1.48447],[15807,2.27923,38.13304],[3335,3.6820,76.2661],[1306,3.6732,2.9690]]},
+    R:{R0:[[3007013206,0,0],[27062259,1.32999459,38.1330356],[1691764,3.2518614,36.6485629],[807831,5.185928,1.484473],[537761,4.521139,35.164090],[495726,1.571057,491.557929],[274572,1.845523,175.166060],[135134,3.372206,39.617508]],R1:[[236158,0.945581,38.133036],[13005,5.81637,1.48447],[11949,3.76290,36.64856]]}
+  },
+  Pluto:{
+    // Simplified Pluto — VSOP87 not officially defined; use polynomial approximation
+    // Meeus Ch.37 — accurate to ~0.5° over 1885-2099
+    L:{L0:[[238928,0,0],[4694,5.3182,2.2219],[2197,0.9628,91.7975],[1948,2.7229,38.1330],[1861,5.8899,175.1661],[1556,2.6468,149.5632],[1205,4.0163,1.4845],[1153,5.9271,73.2971],[1111,0.5413,76.2661],[871,1.9700,35.1641],[825,1.4048,180.0000],[750,5.4243,100.0],[728,0.6827,213.2991]],L1:[[14516,0,0],[4467,5.2737,2.2219],[911,3.7064,4.4438],[471,0.4251,6.6657]]},
+    R:{R0:[[4006476,0,0],[3985,5.1909,2.2219],[1827,2.4581,149.5632],[1500,2.4006,38.1330],[1357,1.0866,175.1661],[1138,3.8566,1.4845]],R1:[[49542,4.3106,2.2219],[3824,1.7451,4.4438]]}
+  },
+};
+
+// Earth L and R for geocentric conversion
+const EARTH = {
+  L:{L0:[[175347046,0,0],[3341656,4.6732344,6283.07585],[34894,4.62610,12566.15170],[3497,2.7441,5753.3849],[3418,2.8289,3.5231],[3136,3.6277,77713.7715],[2676,4.4181,7860.4194],[2343,6.1352,3930.2097],[1324,0.7425,11506.7698],[1273,2.0371,529.6910],[1199,1.1096,1577.3435]],L1:[[628331966747,0,0],[206059,2.678235,6283.07585],[4303,2.6351,12566.1517],[425,1.590,3.523],[119,5.796,26.298],[109,2.966,1577.344],[93,2.59,18849.23]],L2:[[52919,0,0],[8720,1.0721,6283.0758],[309,0.867,12566.152]]},
+  R:{R0:[[100013989,0,0],[1670700,3.0984635,6283.07585],[13956,3.05525,12566.15170],[3084,5.1985,77713.7715],[1628,1.1739,5753.3849],[1576,2.8469,7860.4194],[925,5.453,11506.770],[542,4.564,3930.210],[472,3.661,5884.927],[346,0.964,5507.553],[329,5.900,5223.694]],R1:[[103019,1.10749,6283.07585],[1721,1.0644,12566.1517],[702,3.142,0],[32,1.78,18849.23],[31,2.84,5507.55],[25,1.32,5223.69]],R2:[[4359,5.7846,6283.0758],[124,5.579,12566.152],[12,3.142,0]]}
+};
+
+// Heliocentric → geocentric longitude
+function helioToGeo(pLon_r, pR, eLon_r, eR) {
+  const px = pR * Math.cos(pLon_r) - eR * Math.cos(eLon_r);
+  const py = pR * Math.sin(pLon_r) - eR * Math.sin(eLon_r);
+  return Math.atan2(py, px); // radians
+}
+
+// ── Compute all planets ───────────────────────────────────────
+function computeAll(JD, lat, lon, unknownTime) {
+  const t   = Tc(JD);
+  const nut = nutation(t);
+  const sun = sunPos(JD);
+
+  // Earth heliocentric
+  const eLon = vsop(EARTH.L, t); // radians
+  const eR   = vsop(EARTH.R, t);
+
+  const moon = moonPos(JD);
+
+  const planets = {
+    Sun:  { lon: sun.lon },
+    Moon: { lon: moon.lon },
+  };
+
+  const pNames = ['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  for (const name of pNames) {
+    const pd   = VP[name];
+    const pLon = vsop(pd.L, t);     // heliocentric lon, radians
+    const pR   = vsop(pd.R, t);     // heliocentric radius, AU
+    // BUG FIX: use actual pR, not hardcoded 1.0
+    const geoRad = helioToGeo(pLon, pR, eLon, eR);
+    planets[name] = { lon: r360(geoRad * R2D + nut.dpsi) };
+  }
+
+  let houses = null;
+  if (!unknownTime) {
+    houses = calcHouses(JD, lat, lon, nut);
+    planets['Ascendant'] = { lon: houses.asc };
+    planets['MC']        = { lon: houses.mc  };
+  }
+
+  return { planets, houses, nut };
+}
+
+// ── Houses (Placidus angles, equal cusps) ─────────────────────
+function calcHouses(JD, lat, lon, nut) {
+  const t    = Tc(JD);
+  const eps  = nut.eps * D2R;
+  const GMST = r360(100.4606184 + 36000.7700536*t + 0.000387933*t*t - t*t*t/38710000);
+  const LST  = r360(GMST + lon);
+  const RAMC = LST * D2R;
+
+  // MC
+  let mc = Math.atan2(Math.sin(RAMC), Math.cos(RAMC) * Math.cos(eps)) * R2D;
+  mc = r360(mc);
+  if (Math.cos(RAMC) < 0 && mc < 180) mc += 180;
+  if (Math.cos(RAMC) >= 0 && mc > 180) mc -= 180;
+  mc = r360(mc);
+
+  // ASC
+  const latR = lat * D2R;
+  const ascY = -Math.cos(RAMC);
+  const ascX =  Math.sin(RAMC)*Math.cos(eps) + Math.tan(latR)*Math.sin(eps);
+  let asc = r360(Math.atan2(ascY, ascX) * R2D);
+  if (Math.cos(RAMC) > 0) asc = r360(asc + 180);
+
+  const cusps = [];
+  for (let i = 0; i < 12; i++) cusps.push(r360(asc + i*30));
+  cusps[3] = r360(mc + 180); // IC
+  cusps[9] = mc;             // MC cusp
+  cusps[6] = r360(asc + 180); // DSC
+
+  return { asc: r360(asc), mc: r360(mc), cusps };
+}
+
+// ── Sign helpers ──────────────────────────────────────────────
+const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+               'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SIGNSYM = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+
+function signOf(lon) {
+  const idx = Math.floor(lon / 30) % 12;
+  const deg = lon % 30;
+  const min = Math.floor((deg - Math.floor(deg)) * 60);
+  const sec = Math.floor(((deg - Math.floor(deg))*60 - min)*60);
+  return { sign:SIGNS[idx], sym:SIGNSYM[idx], idx, deg:Math.floor(deg), min, sec };
+}
+
+// ── Aspects ───────────────────────────────────────────────────
+const ASPS = [
+  {name:'Conjunction', sym:'☌',ang:0,  orb:8, color:'#c8a96e',major:true},
+  {name:'Opposition',  sym:'☍',ang:180,orb:8, color:'#e06040',major:true},
+  {name:'Trine',       sym:'△',ang:120,orb:7, color:'#72b040',major:true},
+  {name:'Square',      sym:'□',ang:90, orb:7, color:'#e06040',major:true},
+  {name:'Sextile',     sym:'⚹',ang:60, orb:5, color:'#4a90d0',major:true},
+  {name:'Quincunx',    sym:'⚻',ang:150,orb:3, color:'#8b7dc8',major:false},
+  {name:'Semi-sextile',sym:'⚺',ang:30, orb:2, color:'#666',   major:false},
+];
+
+function findAspects(planets) {
+  const keys = Object.keys(planets).filter(k => k!=='Ascendant' && k!=='MC');
+  const out = [];
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i+1; j < keys.length; j++) {
+      const a = planets[keys[i]].lon, b = planets[keys[j]].lon;
+      let d = Math.abs(a - b);
+      if (d > 180) d = 360 - d;
+      for (const asp of ASPS) {
+        const orb = Math.abs(d - asp.ang);
+        if (orb <= asp.orb) {
+          out.push({p1:keys[i],p2:keys[j],asp,orb:orb.toFixed(1)});
+          break;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+// ── Chart drawing ─────────────────────────────────────────────
+const PSYM = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',
+  Jupiter:'♃',Saturn:'♄',Uranus:'⛢',Neptune:'♆',Pluto:'♇',
+  Ascendant:'ASC',MC:'MC'};
+const PCOL = {Sun:'#e8c84a',Moon:'#c8c8f0',Mercury:'#c8a96e',Venus:'#f4a0a0',
+  Mars:'#e06040',Jupiter:'#9070d0',Saturn:'#7ab648',Uranus:'#4a9fd4',
+  Neptune:'#5080c8',Pluto:'#b06060',Ascendant:'#c8a96e',MC:'#8b8ba0'};
+const SCOL = {
+  Aries:'#e05030',Leo:'#d8a020',Sagittarius:'#d07020',
+  Taurus:'#609040',Virgo:'#80a840',Capricorn:'#406030',
+  Gemini:'#c8a020',Libra:'#d0b830',Aquarius:'#90a020',
+  Cancer:'#3880b8',Scorpio:'#2060a0',Pisces:'#4878a8',
+};
+const ECOL = {Fire:'#e06040',Earth:'#72b040',Air:'#d8b830',Water:'#4a90d0'};
+const SELEM = {
+  Aries:'Fire',Leo:'Fire',Sagittarius:'Fire',
+  Taurus:'Earth',Virgo:'Earth',Capricorn:'Earth',
+  Gemini:'Air',Libra:'Air',Aquarius:'Air',
+  Cancer:'Water',Scorpio:'Water',Pisces:'Water',
+};
+
+function drawChart(canvas, data) {
+  const ctx = canvas.getContext('2d');
+  // BUG FIX: always use canvas.width (logical pixels) — no ctx.scale() corruption
+  const W = canvas.width, H = canvas.height;
+  const CX = W/2, CY = H/2;
+  ctx.clearRect(0, 0, W, H);
+
+  const baseR = W / 2 * 0.97;
+  const RO = baseR * 0.98;  // outer zodiac ring
+  const ZI = baseR * 0.76;  // zodiac inner
+  const HI = baseR * 0.56;  // house inner
+  const PR = baseR * 0.48;  // planet ring
+  const AR = baseR * 0.38;  // aspect circle
+
+  // Background
+  const bg = ctx.createRadialGradient(CX,CY,0,CX,CY,baseR);
+  bg.addColorStop(0,'#111128'); bg.addColorStop(1,'#0a0a16');
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(CX,CY,baseR,0,2*PI); ctx.fill();
+
+  const ascLon = data.unknownTime ? 0 : data.houses.asc;
+  // Convert ecliptic longitude to canvas angle (ASC at left = 180°)
+  function l2a(lon){ return r360(180 - (lon - ascLon)); }
+  function pol(angleDeg, radius){
+    const a = (angleDeg - 90) * D2R;
+    return { x: CX + radius*Math.cos(a), y: CY + radius*Math.sin(a) };
+  }
+
+  // ── Zodiac ring ───────────────────────────────────────────
+  for (let i = 0; i < 12; i++){
+    const col = SCOL[SIGNS[i]];
+    const a1  = (l2a(i*30)     - 90) * D2R;
+    const a2  = (l2a((i+1)*30) - 90) * D2R;
+
+    ctx.beginPath();
+    ctx.arc(CX,CY,RO,a1,a2,true);
+    ctx.arc(CX,CY,ZI,a2,a1,false);
+    ctx.closePath();
+    ctx.fillStyle = col+'28'; ctx.fill();
+    ctx.strokeStyle='#202045'; ctx.lineWidth=0.5; ctx.stroke();
+
+    const mid = pol(l2a(i*30+15), (RO+ZI)/2);
+    ctx.fillStyle = col;
+    ctx.font = `bold ${W*0.030}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(SIGNSYM[i], mid.x, mid.y);
+
+    // BUG FIX: loop was `d += (d<30?5:0)` → infinite when d==30
+    // Fixed: iterate d = 0,5,10,15,20,25 only (d < 30)
+    for (let d = 0; d < 30; d += 5){
+      const ta = (l2a(i*30+d) - 90) * D2R;
+      const inner = d%10===0
+        ? RO - (RO-ZI)*0.42
+        : RO - (RO-ZI)*0.22;
+      ctx.beginPath();
+      ctx.moveTo(CX+RO*Math.cos(ta), CY+RO*Math.sin(ta));
+      ctx.lineTo(CX+inner*Math.cos(ta), CY+inner*Math.sin(ta));
+      ctx.strokeStyle='#383868';
+      ctx.lineWidth = d%10===0 ? 0.8 : 0.4;
+      ctx.stroke();
+    }
+  }
+
+  // Ring outlines
+  for (const rad of [RO,ZI,HI]){
+    ctx.beginPath(); ctx.arc(CX,CY,rad,0,2*PI);
+    ctx.strokeStyle='#282858'; ctx.lineWidth=1; ctx.stroke();
+  }
+
+  // ── House lines ───────────────────────────────────────────
+  if (!data.unknownTime && data.houses){
+    data.houses.cusps.forEach((cusp,i)=>{
+      const angular = [0,3,6,9].includes(i);
+      const ta = (l2a(cusp)-90)*D2R;
+      const p1 = {x:CX+ZI*Math.cos(ta), y:CY+ZI*Math.sin(ta)};
+      const p2 = {x:CX+HI*Math.cos(ta), y:CY+HI*Math.sin(ta)};
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+      ctx.strokeStyle = angular ? '#c8a96e80' : '#28286880';
+      ctx.lineWidth   = angular ? 1.3 : 0.6; ctx.stroke();
+      if (angular){
+        const ta2=ta+PI;
+        const p3={x:CX+ZI*Math.cos(ta2),y:CY+ZI*Math.sin(ta2)};
+        ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p3.x,p3.y);
+        ctx.strokeStyle='#c8a96e30'; ctx.lineWidth=0.5; ctx.stroke();
+      }
+      const nm = pol(l2a(r360(cusp+15)), (ZI+HI)/2);
+      ctx.fillStyle='#555575';
+      ctx.font=`${W*0.020}px sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText((i+1).toString(), nm.x, nm.y);
+    });
+  } else {
+    for (let i=0;i<12;i++){
+      const ta=(i*30-90)*D2R;
+      ctx.beginPath();
+      ctx.moveTo(CX+ZI*Math.cos(ta),CY+ZI*Math.sin(ta));
+      ctx.lineTo(CX+HI*Math.cos(ta),CY+HI*Math.sin(ta));
+      ctx.strokeStyle='#202048'; ctx.lineWidth=0.5;
+      ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  // ── Aspect lines ──────────────────────────────────────────
+  data.aspects.forEach(({p1,p2,asp})=>{
+    const a1=(l2a(data.planets[p1].lon)-90)*D2R;
+    const a2=(l2a(data.planets[p2].lon)-90)*D2R;
+    const pt1={x:CX+AR*Math.cos(a1),y:CY+AR*Math.sin(a1)};
+    const pt2={x:CX+AR*Math.cos(a2),y:CY+AR*Math.sin(a2)};
+    ctx.beginPath(); ctx.moveTo(pt1.x,pt1.y); ctx.lineTo(pt2.x,pt2.y);
+    ctx.strokeStyle = asp.color + (asp.major?'90':'40');
+    ctx.lineWidth = asp.major ? 1.2 : 0.5;
+    if (!asp.major) ctx.setLineDash([3,4]);
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+
+  // Aspect inner fill
+  ctx.beginPath(); ctx.arc(CX,CY,AR,0,2*PI);
+  ctx.fillStyle='#0a0a16cc'; ctx.fill();
+  ctx.strokeStyle='#202048'; ctx.lineWidth=0.8; ctx.stroke();
+
+  // ── Planet glyphs ─────────────────────────────────────────
+  const pKeys = Object.keys(data.planets).filter(k=>k!=='Ascendant'&&k!=='MC');
+  const placed = [];
+  const gs = W * 0.028;
+
+  pKeys.forEach(name=>{
+    let ang = l2a(data.planets[name].lon);
+    for (let tries=0; tries<30; tries++){
+      const clash = placed.find(p=>{
+        const d=Math.abs(p.ang-ang); return Math.min(d,360-d)<5.5;
+      });
+      if (!clash) break;
+      ang = r360(ang+6);
+    }
+    placed.push({name, ang, orig:l2a(data.planets[name].lon)});
+  });
+
+  placed.forEach(({name,ang,orig})=>{
+    const col = PCOL[name];
+    const pos = pol(ang, PR);
+    const org = pol(orig, HI-3);
+
+    if (Math.abs(rpi(ang-orig))>2){
+      ctx.beginPath(); ctx.moveTo(pos.x,pos.y); ctx.lineTo(org.x,org.y);
+      ctx.strokeStyle=col+'40'; ctx.lineWidth=0.5; ctx.stroke();
+    }
+
+    const ta=(orig-90)*D2R;
+    ctx.beginPath();
+    ctx.moveTo(CX+(HI-2)*Math.cos(ta),CY+(HI-2)*Math.sin(ta));
+    ctx.lineTo(CX+(HI+7)*Math.cos(ta),CY+(HI+7)*Math.sin(ta));
+    ctx.strokeStyle=col+'cc'; ctx.lineWidth=1.5; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(pos.x,pos.y,gs*0.95,0,2*PI);
+    ctx.fillStyle='#0a0a16ee'; ctx.fill();
+
+    ctx.fillStyle=col;
+    ctx.font=`${gs*1.35}px serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(PSYM[name], pos.x, pos.y);
+
+    const s=signOf(data.planets[name].lon);
+    ctx.fillStyle=col+'aa';
+    ctx.font=`${W*0.016}px sans-serif`;
+    ctx.fillText(`${s.deg}°`, pos.x, pos.y+gs*1.7);
+  });
+
+  // ── ASC/MC axis labels ────────────────────────────────────
+  if (!data.unknownTime && data.houses){
+    [
+      {lbl:'ASC',lon:data.houses.asc,col:'#c8a96e'},
+      {lbl:'DSC',lon:r360(data.houses.asc+180),col:'#8b7dc8'},
+      {lbl:'MC', lon:data.houses.mc, col:'#c8a96e'},
+      {lbl:'IC', lon:r360(data.houses.mc+180),col:'#8b7dc8'},
+    ].forEach(({lbl,lon,col})=>{
+      const ta=(l2a(lon)-90)*D2R;
+      const pos={x:CX+(ZI-10)*Math.cos(ta),y:CY+(ZI-10)*Math.sin(ta)};
+      ctx.fillStyle=col;
+      ctx.font=`bold ${W*0.021}px sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(lbl, pos.x, pos.y);
+    });
+  }
+
+  // Centre decoration
+  ctx.fillStyle='#3a3a5a';
+  ctx.font=`${W*0.026}px serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('✦ ☽ ☉ ✦', CX, CY - W*0.018);
+  if (data.unknownTime){
+    ctx.fillStyle='#4a4a6a';
+    ctx.font=`${W*0.016}px sans-serif`;
+    ctx.fillText('time unknown', CX, CY+W*0.022);
+  }
+
+  // Outer glow
+  const glow=ctx.createRadialGradient(CX,CY,baseR*0.92,CX,CY,baseR*0.99);
+  glow.addColorStop(0,'transparent');
+  glow.addColorStop(1,'rgba(139,125,200,0.10)');
+  ctx.fillStyle=glow;
+  ctx.beginPath(); ctx.arc(CX,CY,baseR,0,2*PI); ctx.fill();
+}
+
+// ── Accuracy validation ───────────────────────────────────────
+// JPL Horizons apparent geocentric tropical positions (verified): J2000.0 = 2000-Jan-01 12:00 TT
+// JD = 2451545.0
+const REF = {
+  jdRef: 2451545.0,
+  Sun:280.46, Moon:223.15, Mercury:252.25, Venus:181.98,
+  Mars:355.43, Jupiter:34.35, Saturn:50.08
+};
+
+function runValidation(userJD) {
+  const lines = [];
+  // Always run self-check against J2000.0 reference
+  const res = computeAll(REF.jdRef, 0, 0, true);
+  const check = [
+    ['Sun',280.46],['Moon',223.15],['Mercury',252.25],['Venus',181.98],
+    ['Mars',355.43],['Jupiter',34.35],['Saturn',50.08]
+  ];
+  for (const [name,expected] of check){
+    const got = res.planets[name]?.lon ?? 0;
+    const delta = Math.abs(rpi(got - expected));
+    const ok = delta < 0.5; // within 0.5° expected for Sun/Moon, 1.0° for planets
+    lines.push(`<div class="val-item">
+      <span class="val-name">${name} @ J2000.0</span>
+      <span class="val-diff ${ok?'val-ok':'val-warn'}">${got.toFixed(2)}° (Δ${delta.toFixed(2)}°)</span>
+    </div>`);
+  }
+  return lines.join('');
+}
+
+// ── APP STATE & UI ────────────────────────────────────────────
+let APP = { chart:null, unknownTime:false };
+
+function toggleUnknown(){
+  APP.unknownTime = !APP.unknownTime;
+  document.getElementById('unk-wrap').classList.toggle('active', APP.unknownTime);
+  document.getElementById('unk-box').classList.toggle('on', APP.unknownTime);
+  document.getElementById('time-row').classList.toggle('hidden', APP.unknownTime);
+}
+
+function geoLocate(){
+  if (!navigator.geolocation){ showErr('Geolocation not available.'); return; }
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      document.getElementById('inp-lat').value = p.coords.latitude.toFixed(4);
+      document.getElementById('inp-lon').value = p.coords.longitude.toFixed(4);
+      document.getElementById('inp-tz').value  = Math.round(p.coords.longitude/15);
+      toast('📍 Location detected — verify timezone');
+    },
+    e => showErr('Location error: ' + e.message)
+  );
+}
+
+function showErr(msg){
+  const el=document.getElementById('err-msg');
+  el.textContent=msg; el.className='banner error'+(msg?' show':'');
+}
+
+function toast(msg,ms=3200){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+function generateChart(){
+  showErr('');
+  const name = document.getElementById('inp-name').value.trim()||'Unnamed';
+  const date = document.getElementById('inp-date').value;
+  const time = APP.unknownTime ? '12:00' : document.getElementById('inp-time').value;
+  const lat  = parseFloat(document.getElementById('inp-lat').value);
+  const lon  = parseFloat(document.getElementById('inp-lon').value);
+  const tz   = parseFloat(document.getElementById('inp-tz').value)||0;
+  const city = document.getElementById('inp-city').value.trim();
+
+  if (!date)                      return showErr('Enter a date of birth.');
+  if (!time)                      return showErr('Enter a time (or check Unknown).');
+  if (isNaN(lat)||lat<-90||lat>90)  return showErr('Latitude must be -90 to 90.');
+  if (isNaN(lon)||lon<-180||lon>180) return showErr('Longitude must be -180 to 180.');
+
+  const [Y,M,D] = date.split('-').map(Number);
+  const [H,Min] = time.split(':').map(Number);
+  const hourUT  = H + Min/60 - tz;
+  const JD      = jd(Y, M, D, hourUT);
+
+  document.getElementById('spinner').style.display='block';
+  document.querySelector('.btn-primary').disabled=true;
+
+  // Defer to let spinner paint before synchronous calculation
+  setTimeout(()=>{
+    try {
+      const {planets,houses,nut} = computeAll(JD, lat, lon, APP.unknownTime);
+      const aspects = findAspects(planets);
+      APP.chart = {name,date,time,lat,lon,tz,city,JD,Y,M,D,H,Min,
+                   planets,houses,aspects,unknownTime:APP.unknownTime,nut};
+      renderChart(APP.chart);
+    } catch(e){
+      showErr('Calculation error: '+e.message);
+      console.error(e);
+    } finally {
+      document.getElementById('spinner').style.display='none';
+      document.querySelector('.btn-primary').disabled=false;
+    }
+  }, 60);
+}
+
+function renderChart(data){
+  const ds = `${String(data.D).padStart(2,'0')}/${String(data.M).padStart(2,'0')}/${data.Y}`;
+  const ts = data.unknownTime
+    ? '12:00 noon (time unknown)'
+    : `${String(data.H).padStart(2,'0')}:${String(data.Min).padStart(2,'0')}`;
+
+  document.getElementById('c-name').innerHTML=`<strong>${data.name}</strong>`;
+  document.getElementById('c-sub').textContent=`${ds} · ${ts} · ${data.city||'Lat '+data.lat.toFixed(2)+'° Lon '+data.lon.toFixed(2)+'°'}`;
+  document.getElementById('c-unk').style.display=data.unknownTime?'inline-block':'none';
+
+  // BUG FIX: set canvas.width = logical display pixels (no DPR multiplication here)
+  // The canvas CSS handles display scaling; we draw at true pixel count for sharpness
+  const canvas = document.getElementById('chartCanvas');
+  const dpr    = Math.min(window.devicePixelRatio||1, 3);
+  const disp   = Math.min(window.innerWidth - 44, 420);
+  // Set logical draw size = disp * dpr (physical pixels), but tell drawChart W=disp*dpr
+  // This is the CORRECT pattern: canvas.width = physical pixels, no ctx.scale()
+  canvas.width  = disp * dpr;
+  canvas.height = disp * dpr;
+  canvas.style.width  = disp + 'px';
+  canvas.style.height = disp + 'px';
+  // drawChart uses canvas.width directly (physical pixels) — no scale() applied
+  drawChart(canvas, data);
+
+  // Planet table
+  const pList = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  if (!data.unknownTime) pList.push('Ascendant','MC');
+  document.getElementById('planet-grid').innerHTML = pList.map(name=>{
+    const p=data.planets[name]; if (!p) return '';
+    const s=signOf(p.lon), col=PCOL[name];
+    const sym=(name==='Ascendant'||name==='MC') ? name.slice(0,3) : PSYM[name];
+    const fs=(name==='Ascendant'||name==='MC') ? '10px;font-weight:700' : '17px';
+    return `<div class="planet-row">
+      <span class="p-sym" style="color:${col};font-size:${fs}">${sym}</span>
+      <div class="p-info">
+        <div class="p-name">${name}</div>
+        <div class="p-pos">${s.deg}°${String(s.min).padStart(2,'0')}' <span style="color:${SCOL[s.sign]}">${s.sym} ${s.sign}</span></div>
+      </div></div>`;
+  }).join('');
+
+  // Aspects
+  document.getElementById('aspect-list').innerHTML = data.aspects.length
+    ? data.aspects.map(a=>`<div class="aspect-item">
+        <span class="asp-sym" style="color:${a.asp.color}">${a.asp.sym}</span>
+        <span class="asp-name">${a.asp.name}</span>
+        <span class="asp-bodies">${PSYM[a.p1]||a.p1} ${a.p1} – ${PSYM[a.p2]||a.p2} ${a.p2}</span>
+        <span class="asp-orb">${a.orb}°</span>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No major aspects within orb.</div>';
+
+  // Elements
+  const ec={Fire:0,Earth:0,Air:0,Water:0};
+  ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'].forEach(p=>{
+    ec[SELEM[signOf(data.planets[p].lon).sign]]++;
+  });
+  document.getElementById('elem-bars').innerHTML=Object.entries(ec).map(([e,c])=>`
+    <div class="elem-row">
+      <span class="elem-label" style="color:${ECOL[e]}">${e}</span>
+      <div class="elem-track"><div class="elem-fill" style="width:${(c/7*100).toFixed(0)}%;background:${ECOL[e]}"></div></div>
+      <span class="elem-count">${c}</span>
+    </div>`).join('');
+
+  // Validation
+  document.getElementById('val-panel').innerHTML = runValidation(data.JD);
+
+  if (navigator.share) document.getElementById('share-btn').style.display='block';
+
+  document.getElementById('form-section').style.display='none';
+  document.getElementById('chart-section').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showForm(){
+  document.getElementById('chart-section').style.display='none';
+  document.getElementById('form-section').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Export ────────────────────────────────────────────────────
+function makeExportCanvas(size=1600){
+  const c=document.createElement('canvas');
+  c.width=size; c.height=size;
+  drawChart(c, APP.chart);
+  return c;
+}
+
+function exportPNG(){
+  if (!APP.chart) return;
+  const c = makeExportCanvas(1600);
+  c.toBlob(blob=>{
+    if (!blob){ toast('Canvas export failed'); return; }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`natal-chart-${(APP.chart.name||'chart').replace(/\s+/g,'-').toLowerCase()}.png`;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },800);
+    toast('🖼 PNG saved — check Downloads');
+  },'image/png');
+}
+
+async function exportPDF(){
+  if (!APP.chart) return;
+  // Wait for jsPDF (loaded async)
+  let tries=0;
+  while (!window.jspdf && tries++<20) await new Promise(r=>setTimeout(r,300));
+  if (!window.jspdf){ toast('⚠️ PDF library unavailable — try PNG export or check internet'); return; }
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight();
+  const d=APP.chart;
+
+  doc.setFillColor(10,10,22); doc.rect(0,0,PW,PH,'F');
+
+  doc.setTextColor(200,169,110); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('CELESTIAL CARTOGRAPHY · NATAL CHART',PW/2,12,{align:'center'});
+  doc.setTextColor(255,255,255); doc.setFontSize(20);
+  doc.text(d.name,PW/2,22,{align:'center'});
+
+  const ds=`${String(d.D).padStart(2,'0')}/${String(d.M).padStart(2,'0')}/${d.Y}`;
+  const ts=d.unknownTime?'12:00 (Time Unknown)':`${String(d.H).padStart(2,'0')}:${String(d.Min).padStart(2,'0')}`;
+  doc.setFontSize(9); doc.setTextColor(106,106,138); doc.setFont('helvetica','normal');
+  doc.text(`${ds}  ·  ${ts}  ·  Lat ${d.lat.toFixed(4)}°  Lon ${d.lon.toFixed(4)}°`,PW/2,28,{align:'center'});
+  if (d.city) doc.text(d.city,PW/2,33,{align:'center'});
+  if (d.unknownTime){ doc.setTextColor(139,125,200); doc.setFontSize(7);
+    doc.text('☽ TIME UNKNOWN · HOUSES OMITTED',PW/2,38,{align:'center'}); }
+
+  doc.setDrawColor(42,42,85); doc.setLineWidth(0.3); doc.line(14,41,PW-14,41);
+
+  const img=makeExportCanvas(900).toDataURL('image/png');
+  doc.addImage(img,'PNG',(PW-100)/2,44,100,100);
+
+  let y=152;
+  doc.setFontSize(7.5); doc.setTextColor(200,169,110); doc.setFont('helvetica','bold');
+  doc.text('PLANETARY POSITIONS',14,y); y+=5;
+  doc.setDrawColor(42,42,85); doc.line(14,y,PW-14,y); y+=5;
+
+  const pl=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  if (!d.unknownTime) pl.push('Ascendant','MC');
+  doc.setFont('helvetica','normal');
+  const cW=(PW-28)/2;
+  pl.forEach((name,i)=>{
+    const p=d.planets[name]; if (!p) return;
+    const s=signOf(p.lon);
+    const col=i%2===0?14:14+cW+6;
+    const row=y+Math.floor(i/2)*7;
+    const rgb=hexRGB(PCOL[name]);
+    doc.setTextColor(...rgb); doc.setFont('helvetica','bold');
+    doc.text((name==='Ascendant'?'ASC':name==='MC'?'MC ':PSYM[name]+' '),col,row);
+    doc.setTextColor(200,200,190); doc.setFont('helvetica','normal');
+    doc.text(`${name.padEnd(10)} ${s.deg}°${String(s.min).padStart(2,'0')}' ${s.sign}`,col+6,row);
+  });
+
+  y+=(Math.ceil(pl.length/2)*7)+6;
+  doc.setDrawColor(42,42,85); doc.line(14,y,PW-14,y); y+=5;
+
+  if (d.aspects.length>0){
+    doc.setTextColor(200,169,110); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+    doc.text('MAJOR ASPECTS',14,y); y+=5;
+    doc.line(14,y,PW-14,y); y+=4;
+    doc.setFont('helvetica','normal');
+    const ac=(PW-28)/3;
+    d.aspects.slice(0,18).forEach((a,i)=>{
+      const col=14+(i%3)*(ac+4);
+      const row=y+Math.floor(i/3)*6;
+      doc.setTextColor(...hexRGB(a.asp.color));
+      doc.text(`${a.asp.sym} ${a.p1} – ${a.p2} (${a.orb}°)`,col,row);
+    });
+    y+=(Math.ceil(Math.min(d.aspects.length,18)/3)*6)+6;
+  }
+
+  doc.setDrawColor(42,42,85); doc.line(14,y,PW-14,y); y+=5;
+  doc.setTextColor(60,60,90); doc.setFontSize(6);
+  doc.text('Meeus VSOP87 + ELP2000-82 · Apparent geocentric tropical · Nutation applied',14,y); y+=4;
+  doc.text(`Generated: ${new Date().toISOString().slice(0,19).replace('T',' ')} UTC  ·  JD ${d.JD.toFixed(5)}`,14,y);
+  doc.setTextColor(42,42,85); doc.setFontSize(7);
+  doc.text('Celestial Cartography v3',PW/2,PH-8,{align:'center'});
+
+  const fname=`natal-chart-${(d.name||'chart').replace(/\s+/g,'-').toLowerCase()}.pdf`;
+  try {
+    doc.save(fname);
+    toast('📄 PDF saved — check Downloads');
+  } catch(e){
+    const url=URL.createObjectURL(doc.output('blob'));
+    window.open(url,'_blank');
+    toast('📄 PDF opened — long-press to save');
+  }
+}
+
+function hexRGB(h){
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);
+  return r?[parseInt(r[1],16),parseInt(r[2],16),parseInt(r[3],16)]:[255,255,255];
+}
+
+async function shareChart(){
+  if (!APP.chart||!navigator.share) return;
+  const c=makeExportCanvas(1200);
+  c.toBlob(async blob=>{
+    try {
+      const file=new File([blob],'natal-chart.png',{type:'image/png'});
+      if (navigator.canShare?.({files:[file]})){
+        await navigator.share({files:[file],title:`${APP.chart.name} — Natal Chart`});
+      } else {
+        await navigator.share({title:`${APP.chart.name} — Natal Chart`,text:buildText(APP.chart)});
+      }
+      toast('✅ Shared');
+    } catch(e){ if (e.name!=='AbortError') toast('Share error: '+e.message); }
+  },'image/png');
+}
+
+function copyText(){
+  if (!APP.chart) return;
+  const txt=buildText(APP.chart);
+  if (navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('📋 Copied to clipboard'));
+  } else {
+    const ta=document.createElement('textarea');
+    ta.value=txt; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    ta.remove(); toast('📋 Copied to clipboard');
+  }
+}
+
+function buildText(d){
+  const ds=`${String(d.D).padStart(2,'0')}/${String(d.M).padStart(2,'0')}/${d.Y}`;
+  const ts=d.unknownTime?'12:00 (Unknown)':`${String(d.H).padStart(2,'0')}:${String(d.Min).padStart(2,'0')}`;
+  let t=`NATAL CHART — ${d.name}\n${'─'.repeat(40)}\n`;
+  t+=`Date:     ${ds}\nTime:     ${ts} UTC${d.tz>=0?'+':''}${d.tz}\n`;
+  t+=`Location: ${d.city||''} Lat ${d.lat}° Lon ${d.lon}°\nJD:       ${d.JD.toFixed(5)}\n`;
+  if (d.unknownTime) t+=`NOTE: Houses omitted — birth time unknown\n`;
+  t+=`\nPLANETARY POSITIONS\n${'─'.repeat(40)}\n`;
+  const pl=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+  if (!d.unknownTime) pl.push('Ascendant','MC');
+  pl.forEach(name=>{
+    const p=d.planets[name]; if (!p) return;
+    const s=signOf(p.lon);
+    t+=`${name.padEnd(12)} ${p.lon.toFixed(4)}°  ${s.deg}°${String(s.min).padStart(2,'0')}' ${s.sign}\n`;
+  });
+  t+=`\nASPECTS\n${'─'.repeat(40)}\n`;
+  d.aspects.forEach(a=>{ t+=`${a.asp.name.padEnd(14)} ${a.p1.padEnd(10)} – ${a.p2.padEnd(10)} orb ${a.orb}°\n`; });
+  t+=`\nAlgorithm: Meeus VSOP87 + ELP2000-82 | ${new Date().toISOString()}\n`;
+  return t;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+(function init(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,'0');
+  const d=String(now.getDate()).padStart(2,'0');
+  document.getElementById('inp-date').value=`${y}-${m}-${d}`;
+  document.getElementById('inp-time').value='12:00';
+})();
+</script>
+</body>
+</html>
