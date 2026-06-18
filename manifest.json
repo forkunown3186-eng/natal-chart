@@ -1,44 +1,52 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "Astrava-natal-chart",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "Astrava",
-  "start_url": "/index.html",
-  "theme_color": "#0d0d1a",
+  "$schema": "https://json.schemastore.org/web-manifest.json",
+  "id": "https://forkunown3186-eng.github.io/natal-chart/",
+  "name": "Natal Chart App",
+  "short_name": "NatalChart",
+  "description": "A high-precision offline natal chart and astrology calculation app supporting VSOP87 and ELP2000-82 models.",
   "lang": "en",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "categories": ["utilities", "lifestyle"],
   "icons": [
     {
-      "src": "/launchericon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "/launchericon-192x192.png",
+      "src": "https://images.placeholders.dev/?width=192&height=192&text=NC&bgColor=%23000000&textColor=%23ffffff",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/launchericon-48x48.png",
-      "sizes": "48x48",
-      "type": "image/png"
-    },
-    {
-      "src": "/launchericon-512x512.png",
+      "src": "https://images.placeholders.dev/?width=512&height=512&text=NatalChart&bgColor=%23000000&textColor=%23ffffff",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/launchericon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png"
+      "src": "https://images.placeholders.dev/?width=512&height=512&text=NatalChart&bgColor=%23000000&textColor=%23ffffff",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.placeholders.dev/?width=1080&height=1920&text=Mobile+Screenshot&bgColor=%231a1a1a&textColor=%23ffffff",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Natal Chart Mobile View"
     },
     {
-      "src": "/launchericon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
+      "src": "https://images.placeholders.dev/?width=1920&height=1080&text=Desktop+Screenshot&bgColor=%231a1a1a&textColor=%23ffffff",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Natal Chart Desktop View"
     }
   ]
 }
